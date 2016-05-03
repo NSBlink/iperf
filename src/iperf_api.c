@@ -77,7 +77,9 @@
 #include "iperf_util.h"
 #include "iperf_locale.h"
 #include "version.h"
-
+extern FILE* _flowFin;
+double _my_interval = 0;
+int _now_interval = 0;
 /* Forwards. */
 static int send_parameters(struct iperf_test *test);
 static int get_parameters(struct iperf_test *test);
@@ -606,6 +608,7 @@ iperf_parse_arguments(struct iperf_test *test, int argc, char **argv)
 {
     static struct option longopts[] =
     {
+	{"flowfile", required_argument, NULL, 'E'},
         {"port", required_argument, NULL, 'p'},
         {"format", required_argument, NULL, 'f'},
         {"interval", required_argument, NULL, 'i'},
@@ -672,8 +675,23 @@ iperf_parse_arguments(struct iperf_test *test, int argc, char **argv)
 
     blksize = 0;
     server_flag = client_flag = rate_flag = duration_flag = 0;
-    while ((flag = getopt_long(argc, argv, "p:f:i:D1VJvsc:ub:t:n:k:l:P:Rw:B:M:N46S:L:ZO:F:A:T:C:dI:hX:", longopts, NULL)) != -1) {
+    while ((flag = getopt_long(argc, argv, "p:f:i:D1VJvsc:ub:t:n:k:l:P:Rw:B:M:N46S:L:ZO:F:A:T:C:dI:hX:E:", longopts, NULL)) != -1) {
         switch (flag) {
+	    case 'E':
+		_flowFin = fopen(optarg, "r");
+		if(_flowFin == NULL)
+		{
+			printf("no such file, %s\n", optarg);
+			exit(1);
+		}
+		double speed_this_interval;
+		if(fscanf(_flowFin, "%lf", &speed_this_interval))
+			test->settings->rate = (double)speed_this_interval*1000;
+		else
+			test->settings->rate = (double)1*1000*1000;
+		rate_flag = 1;
+		client_flag = 1;
+		break;
             case 'p':
                 test->server_port = atoi(optarg);
                 break;
@@ -683,7 +701,8 @@ iperf_parse_arguments(struct iperf_test *test, int argc, char **argv)
             case 'i':
                 /* XXX: could potentially want separate stat collection and reporting intervals,
                    but just set them to be the same for now */
-                test->stats_interval = test->reporter_interval = atof(optarg);
+		
+                _my_interval = test->stats_interval = test->reporter_interval = atof(optarg);
                 if ((test->stats_interval < MIN_INTERVAL || test->stats_interval > MAX_INTERVAL) && test->stats_interval != 0) {
                     i_errno = IEINTERVAL;
                     return -1;
@@ -2151,7 +2170,18 @@ iperf_stats_callback(struct iperf_test *test)
 	    temp.cnt_error = sp->cnt_error;
 	}
         add_to_interval_list(rp, &temp);
-        rp->bytes_sent_this_interval = rp->bytes_received_this_interval = 0;
+	_now_interval++;
+	if (test->role == 'c' && _flowFin != NULL)
+	{
+		double speed_this_interval;
+		fscanf(_flowFin, "%lf", &speed_this_interval);
+		//printf("speed_this_interval: %lf\n", speed_this_interval);
+		test->settings->rate = (double)speed_this_interval*1000;	
+		
+		sp->result->bytes_sent = test->bytes_sent = speed_this_interval*1000*_my_interval*_now_interval/8;
+		//printf("bytes send = %d\n", test->bytes_sent);				
+	}        
+	rp->bytes_sent_this_interval = rp->bytes_received_this_interval = 0;
     }
 }
 

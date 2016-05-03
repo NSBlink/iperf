@@ -47,6 +47,7 @@
 #include "queue.h"
 #include "cjson.h"
 
+FILE* _flowFin;
 typedef uint64_t iperf_size_t;
 
 struct iperf_interval_results

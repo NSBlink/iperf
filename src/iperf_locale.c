@@ -125,6 +125,7 @@ const char usage_longstr[] = "Usage: iperf [-s|-c host] [options]\n"
                            "  --nstreams      #         number of SCTP streams\n"
 #endif /* HAVE_SCTP */
                            "  -u, --udp                 use UDP rather than TCP\n"
+			   "  -E, --flowfile 		use speed information file defined by Blink(Kbits/s)\n"
                            "  -b, --bandwidth #[KMG][/#] target bandwidth in bits/sec (0 for unlimited)\n"
                            "                            (default %d Mbit/sec for UDP, unlimited for TCP)\n"
                            "                            (optional slash and packet count for burst mode)\n"

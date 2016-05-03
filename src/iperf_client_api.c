@@ -403,6 +403,7 @@ iperf_run_client(struct iperf_test * test)
 		    return -1;
 	    } else {
 		// Regular mode. Client sends.
+		//printf("Start_send in iperf_run_client\n");
 		if (iperf_send(test, &write_set) < 0)
 		    return -1;
 	    }
