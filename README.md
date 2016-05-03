@@ -7,6 +7,15 @@ $ make clean
 $ make
 $ sudo make install
 ```
+# install on raspbian
+```
+$ ./configure
+$ make clean
+$ make
+$ sudo apt-get install libiperf0
+$ sudo make install
+$ sudo apt-get remove libiperf0
+```
 
 # -E参数使用方法
 * -E只能跟-u 和 -i同时使用, 指定一个文件, 文件内容每一行为每一个interval的速率, 单位为Kbits/s
