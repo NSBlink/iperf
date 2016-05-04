@@ -6,6 +6,7 @@ $ ./configure
 $ make clean
 $ make
 $ sudo make install
+$ sudo apt-get install libiperf-dev
 ```
 # install on raspbian
 ```
